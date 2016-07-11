@@ -1,5 +1,5 @@
 {
-  "name": "klayjs-noflo",
+  "name": "klayjs-custom",
   "version": "0.5.0",
   "description": "Interface to autolayout NoFlo graphs with KIELER/KLay Layered algo",
   "dependencies": {},
