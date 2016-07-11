@@ -159,7 +159,6 @@ var klayNoflo = (function () {
 
       // Graph i/o to kGraph nodes
       var inports = graph.inports;
-      Object.assign(inports, graph.resumeports)
       var inportsKeys = Object.keys(inports);
       var inportChildren = inportsKeys.map(function(key){
         var inport = inports[key];
@@ -218,8 +217,38 @@ var klayNoflo = (function () {
         return kChild;
       });
 
+      var resumeports = graph.resumeports;
+      var resumeportsKeys = Object.keys(resumeports);
+      var resumeportChildren = resumeportsKeys.map(function(key){
+        var inport = resumeports[key];
+        var tempId = "resumeport:::"+key;
+        // resumeports just has only one output port
+        var uniquePort = {
+          id: inport.port,
+          width: portProperties.width,
+          height: portProperties.height,
+          properties: {
+            'de.cau.cs.kieler.portSide': portProperties.outportSide
+          }
+        };
+        
+        var kChild = {
+          id: tempId, 
+          labels: [{text: key}],
+          width: nodeProperties.width, 
+          height: nodeProperties.height,
+          ports: [uniquePort],
+          properties: {
+            'portConstraints': portConstraints,
+            "de.cau.cs.kieler.klay.layered.layerConstraint": "FIRST_SEPARATE"
+          }
+        };
+        idx[tempId] = countIdx++;
+        return kChild;
+      });
+
       // Combine nodes, inports, outports to one array
-      kGraph.children = nodeChildren.concat(inportChildren, outportChildren);
+      kGraph.children = nodeChildren.concat(inportChildren, outportChildren, resumeportChildren);
 
       // Encode edges (together with ports on both edges and already
       // encoded nodes)
@@ -273,9 +302,25 @@ var klayNoflo = (function () {
         };
         return outportEdge;
       });
+      
+      var resumeportEdges = resumeportsKeys.map(function (key) {
+        var resumeport = resumeports[key];
+        var source = "resumeport:::"+key;
+        var sourcePort = key;
+        var target = resumeport.process;
+        var targetPort = resumeport.port;
+        var resumeportEdge = {
+          id: 'e' + currentEdge++,
+          source: source,
+          sourcePort: source + '_' + sourcePort,
+          target: target,
+          targetPort: target + '_' + targetPort
+        };
+        return resumeportEdge;
+      });
 
       // Combine edges, inports, outports to one array
-      kGraph.edges = kGraph.edges.concat(inportEdges, outportEdges);
+      kGraph.edges = kGraph.edges.concat(inportEdges, outportEdges,resumeportEdges);
       
       // Encode groups
       var groups = graph.groups;
