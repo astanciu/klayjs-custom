@@ -217,6 +217,36 @@ var klayNoflo = (function () {
         return kChild;
       });
 
+      var pauseports = graph.pauseports;
+      var pauseportsKeys = Object.keys(pauseports);
+      var pauseportChildren = pauseportsKeys.map(function(key){
+        var outport = pauseports[key];
+        var tempId = "pauseport:::"+key;
+        // pauseports just has only one input port
+        var uniquePort = {
+          id: outport.port,
+          width: portProperties.width,
+          height: portProperties.height,
+          properties: {
+            'de.cau.cs.kieler.portSide': portProperties.inportSide
+          }
+        };
+
+        var kChild = {
+          id: tempId, 
+          labels: [{text: key}],
+          width: nodeProperties.width, 
+          height: nodeProperties.height,
+          ports: [uniquePort],
+          properties: {
+            'portConstraints': portConstraints,
+            "de.cau.cs.kieler.klay.layered.layerConstraint": "LAST_SEPARATE"
+          }
+        };
+        idx[tempId] = countIdx++;
+        return kChild;
+      });
+
       var resumeports = graph.resumeports;
       var resumeportsKeys = Object.keys(resumeports);
       var resumeportChildren = resumeportsKeys.map(function(key){
@@ -248,7 +278,7 @@ var klayNoflo = (function () {
       });
 
       // Combine nodes, inports, outports to one array
-      kGraph.children = nodeChildren.concat(inportChildren, outportChildren, resumeportChildren);
+      kGraph.children = nodeChildren.concat(inportChildren, outportChildren, resumeportChildren, pauseportChildren);
 
       // Encode edges (together with ports on both edges and already
       // encoded nodes)
